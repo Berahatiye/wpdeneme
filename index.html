@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WhatsApp Contact Debug</title>
+</head>
+<body>
+  <h2>WhatsApp Contact Debug</h2>
+  <form id="whatsapp-form">
+    <label>
+      Who are you?<br />
+      <input type="text" id="name" placeholder="Your name" required />
+    </label><br /><br />
+
+    <label>
+      How old are you?<br />
+      <input type="number" id="age" placeholder="Your age" required />
+    </label><br /><br />
+
+    <label>
+      Where do you live?<br />
+      <input type="text" id="location" placeholder="Your city or country" required />
+    </label><br /><br />
+
+    <label>
+      Additional message:<br />
+      <textarea id="message" placeholder="Your message" required></textarea>
+    </label><br /><br />
+
+    <button type="submit">Send on WhatsApp</button>
+  </form>
+
+  <script>
+    document.getElementById('whatsapp-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const name = encodeURIComponent(document.getElementById('name').value.trim());
+      const age = encodeURIComponent(document.getElementById('age').value.trim());
+      const location = encodeURIComponent(document.getElementById('location').value.trim());
+      const message = encodeURIComponent(document.getElementById('message').value.trim());
+
+      const whatsappNumber = '905059792823';
+
+      const text = 
+        `Who are you?: ${name}%0A` + 
+        `How old are you?: ${age}%0A` + 
+        `Where do you live?: ${location}%0A` + 
+        `Additional message: ${message}`;
+
+      const url = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${text}`;
+
+      console.log("WhatsApp URL:", url);
+
+      // Try to open WhatsApp link
+      window.open(url, '_blank');
+    });
+  </script>
+</body>
+</html>
