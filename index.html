@@ -3,27 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Contact via WhatsApp - Berahatiye Leather</title>
+  <title>iOS-style Bottom Sheet</title>
   <style>
-    /* Reset and base */
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      padding: 2rem 1.5rem;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #faf7f2; /* very light warm beige */
-      color: #5a4b3a; /* gentle dark brown */
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    .container {
-      background: #fffdfa; /* soft white */
+  .containerwp {
+      background: #fffdfa;
       max-width: 400px;
       width: 100%;
       padding: 2.5rem 2rem 3rem;
@@ -39,7 +22,7 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 2.25rem;
-      font-size: 1.8rem;
+      font-size: 1.2rem;
       user-select: none;
     }
     label {
@@ -48,10 +31,14 @@
       font-weight: 600;
       font-size: 0.95rem;
       color: #8a6d44;
+      margin-top: 0.4rem;
     }
     input[type="text"],
     input[type="number"],
-    textarea {
+    input[type="tel"],
+    input[type="file"],
+    textarea,
+    select {
       width: 100%;
       padding: 0.75rem 1rem;
       font-size: 1rem;
@@ -65,9 +52,10 @@
       resize: vertical;
       min-height: 3rem;
       box-shadow: inset 0 1px 2px rgba(90, 75, 58, 0.1);
+      margin-bottom: 0.75rem;
     }
     input[type="number"] {
-      -moz-appearance: textfield; /* remove number input arrows */
+      -moz-appearance: textfield; 
     }
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
@@ -76,7 +64,9 @@
     }
     input[type="text"]:focus,
     input[type="number"]:focus,
-    textarea:focus {
+    input[type="tel"]:focus,
+    textarea:focus,
+    select:focus {
       border-color: #b3884a;
       box-shadow: 0 0 8px rgba(179, 136, 74, 0.3);
       background-color: #fffef9;
@@ -86,7 +76,7 @@
       min-height: 100px;
       line-height: 1.4;
     }
-    button {
+    .gonder {
       margin-top: 2.5rem;
       width: 100%;
       padding: 0.9rem 0;
@@ -103,22 +93,22 @@
       transition: background-color 0.3s ease, box-shadow 0.3s ease;
       user-select: none;
     }
-    button:hover,
-    button:focus {
+    .gonder:hover,
+    .gonder:focus {
       background-color: #8f6c2d;
       box-shadow: 0 6px 18px rgba(143, 108, 45, 0.6);
       outline: none;
     }
-    /* Responsive */
+   
     @media (max-width: 480px) {
       body {
         padding: 1.5rem 1rem;
       }
-      .container {
+      .containerwp {
         padding: 2rem 1.5rem 2.5rem;
         max-width: 100%;
       }
-      button {
+      .gonder {
         font-size: 1rem;
         padding: 0.8rem 0;
       }
@@ -127,23 +117,64 @@
 </head>
 <body>
 
-  <div class="container">
+  <div class="containerwp">
     <h2>Contact via WhatsApp</h2>
 
     <form id="whatsapp-form" autocomplete="off" novalidate>
-      <label for="name">Who are you?</label>
+      <label for="name">Adınız</label>
       <input type="text" id="name" name="name" placeholder="Your name" required />
 
       <label for="age">How old are you?</label>
       <input type="number" id="age" name="age" placeholder="Your age" min="1" required />
 
-      <label for="location">Where do you live?</label>
+      <label for="location">Siparişin gönderileceği şehir</label>
       <input type="text" id="location" name="location" placeholder="Your city or country" required />
 
-      <label for="message">Additional message</label>
-      <textarea id="message" name="message" placeholder="Your message" required></textarea>
+      <label for="phone">Numaranız <i>(teyit amaçlıdır)</i></label>
+      <input type="tel" id="phone" name="phone" placeholder="+90 5xx xxx xx xx" required />
 
-      <button type="submit" aria-label="Send message on WhatsApp">Send on WhatsApp</button>
+      <label for="item">Ürün Kategorisi</label>
+      <select id="item" name="item" required>
+        <option value="">Seçin.</option>
+        <option value="wallet">Cüzdan</option>
+        <option value="belt">Kemer</option>
+        <option value="bag">Çanta</option>
+        <option value="accessory">Aksesuar</option>
+        <option value="other">Başka bir şey (tıklayın)</option>
+      </select>
+
+      <!-- Only shown if 'Other' is selected -->
+      <input type="text" id="custom-item" name="custom-item" placeholder="İstediğiniz ürün kategorisini yazın." style="display: none; margin-top: 5px;" />
+
+      <label for="material">Material Preference</label>
+      <select id="material" name="material" required>
+        <option value="">Seçin.</option>
+        <option value="real_leather">Real Leather</option>
+        <option value="vegan_leather">Vegan Leather</option>
+        <option value="not_sure">Not Sure</option>
+      </select>
+
+      <label for="color">Renk tercihiniz.</label>
+      <input type="text" id="color" name="color" placeholder="Örn: Siyah, Kahverengi" required />
+
+      <label for="size">Ölçü / Beden (Varsa)</label>
+      <input type="text" id="size" name="size" placeholder="Örn: 95 cm kemer, 11x9 cm cüzdan" />
+
+      <label for="design">Özel Tasarım Detayları</label>
+      <textarea id="design" name="design" placeholder="İsim yazısı, özel dikiş, tarih, vb."></textarea>
+
+      <label for="message">Lütfen ne istediğinizi mümkün olduğunca açık ve detaylıca yazın.</label>
+      <textarea id="message" name="message" placeholder="-Varsa örnek bir ürün ya da Instagram linki
+- Ne zaman teslim alınması gerekiyor?
+- Kime özel yapılıyor? (Eğer hediye ise)
+- Ürünün kullanılacağı özel bir gün var mı?
+- Tercih ettiğiniz desen / motif var mı? (Varsa Link'leri)
+- Eklemek istediğiniz başka notlar var mı? (Not kartı, ambalaj tercihi vs.)" required></textarea>
+
+      <label for="imageUpload">Görsel yükleyin (isteğe bağlı)</label>
+      <input type="file" id="imageUpload" name="imageUpload" accept="image/*" />
+
+      <button class="gonder" id="gonder" type="submit" aria-label="Send message on WhatsApp">Send on WhatsApp</button>
     </form>
   </div>
 
@@ -154,19 +185,47 @@
       const name = encodeURIComponent(this.name.value.trim());
       const age = encodeURIComponent(this.age.value.trim());
       const location = encodeURIComponent(this.location.value.trim());
+      const phone = encodeURIComponent(this.phone.value.trim());
+      const item = this.item.value === "other" ? encodeURIComponent(this["custom-item"].value.trim()) : encodeURIComponent(this.item.options[this.item.selectedIndex].text);
+      const material = encodeURIComponent(this.material.value.trim());
+      const color = encodeURIComponent(this.color.value.trim());
+      const size = encodeURIComponent(this.size.value.trim());
+      const design = encodeURIComponent(this.design.value.trim());
       const message = encodeURIComponent(this.message.value.trim());
+
+      const imageInput = document.getElementById("imageUpload");
+      const imageName = imageInput.files.length > 0 ? imageInput.files[0].name : "Yüklenen görsel yok";
 
       const whatsappNumber = '905059792823';
 
       const text = 
-        `Who are you?: ${name}%0A%0A` + 
-        `How old are you?: ${age}%0A%0A` + 
-        `Where do you live?: ${location}%0A%0A` + 
-        `Additional message: ${message}`;
+        `Ad: ${name}%0A` +
+        `Yaş: ${age}%0A` +
+        `Şehir: ${location}%0A` +
+        `Telefon: ${phone}%0A` +
+        `Ürün Kategorisi: ${item}%0A` +
+        `Malzeme: ${material}%0A` +
+        `Renk: ${color}%0A` +
+        `Ölçü: ${size}%0A` +
+        `Tasarım: ${design}%0A` +
+        `Detaylı Mesaj: ${message}%0A` +
+        `Görsel Dosyası: ${imageName}`;
 
       const url = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${text}`;
-
       window.open(url, '_blank');
+    });
+
+    const itemSelect = document.getElementById("item");
+    const customInput = document.getElementById("custom-item");
+
+    itemSelect.addEventListener("change", () => {
+      if (itemSelect.value === "other") {
+        customInput.style.display = "block";
+        customInput.required = true;
+      } else {
+        customInput.style.display = "none";
+        customInput.required = false;
+      }
     });
   </script>
 
