@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Send Image + Text on WhatsApp</title>
   <style>
+    /* Your CSS styling */
     .containerwp {
       background: #fffdfa;
       max-width: 400px;
@@ -178,7 +179,7 @@
     const form = document.getElementById('whatsapp-form');
     const sendBtn = document.getElementById('gonder');
 
-    // Toggle custom item input visibility
+    // Show/hide custom item input if "other" is selected
     itemSelect.addEventListener("change", () => {
       if (itemSelect.value === "other") {
         customInput.style.display = "block";
@@ -186,6 +187,7 @@
       } else {
         customInput.style.display = "none";
         customInput.required = false;
+        customInput.value = "";
       }
     });
 
@@ -202,6 +204,7 @@
         const imageInput = document.getElementById("imageUpload");
         if (imageInput.files.length > 0) {
           const imageFile = imageInput.files[0];
+
           const formData = new FormData();
           formData.append('image', imageFile);
           formData.append('key', imgbbApiKey);
@@ -210,6 +213,7 @@
             method: 'POST',
             body: formData
           });
+
           const result = await response.json();
 
           if (result.success) {
@@ -223,15 +227,15 @@
           }
         }
 
-        // Collect form data, encode properly
+        // Prepare message fields, encode for URL
         const name = encodeURIComponent(form.name.value.trim());
         const age = encodeURIComponent(form.age.value.trim());
         const location = encodeURIComponent(form.location.value.trim());
         const phone = encodeURIComponent(form.phone.value.trim());
 
-        const item = itemSelect.value === "other"
-          ? encodeURIComponent(customInput.value.trim())
-          : encodeURIComponent(itemSelect.options[itemSelect.selectedIndex].text);
+        const item = form.item.value === "other"
+          ? encodeURIComponent(form["custom-item"].value.trim())
+          : encodeURIComponent(form.item.options[form.item.selectedIndex].text);
 
         const material = encodeURIComponent(form.material.value.trim());
         const color = encodeURIComponent(form.color.value.trim());
@@ -240,29 +244,28 @@
         const message = encodeURIComponent(form.message.value.trim());
         const encodedImageUrl = encodeURIComponent(imageUrl);
 
-        const whatsappNumber = '905059792823'; // Your WhatsApp number with country code
+        const whatsappNumber = '905059792823'; // Your WhatsApp number with country code, no plus sign
 
-        // Compose message
-        const text = 
-          `Ad: ${name}%0A` +
-          `Yaş: ${age}%0A` +
-          `Şehir: ${location}%0A` +
-          `Telefon: ${phone}%0A` +
-          `Ürün Kategorisi: ${item}%0A` +
-          `Malzeme: ${material}%0A` +
-          `Renk: ${color}%0A` +
-          `Ölçü: ${size}%0A` +
-          `Tasarım: ${design}%0A` +
-          `Detaylı Mesaj: ${message}%0A` +
+        // Build WhatsApp message text (line breaks with %0A)
+        const text =
+          `Ad: ${name}%0A%0A` +
+          `Yaş: ${age}%0A%0A` +
+          `Şehir: ${location}%0A%0A` +
+          `Telefon: ${phone}%0A%0A` +
+          `Ürün Kategorisi: ${item}%0A%0A` +
+          `Malzeme: ${material}%0A%0A` +
+          `Renk: ${color}%0A%0A` +
+          `Ölçü: ${size}%0A%0A` +
+          `Tasarım: ${design}%0A%0A` +
+          `Detaylı Mesaj: ${message}%0A%0A` +
           `Görsel Linki: ${encodedImageUrl}`;
 
-        const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${text}`;
-
-        // Open WhatsApp chat with prefilled message
-        window.open(whatsappUrl, '_blank');
+        // Open WhatsApp Web or app with the message prefilled
+        const url = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${text}`;
+        window.open(url, '_blank');
 
       } catch (error) {
-        alert('Something went wrong: ' + error.message);
+        alert('Bir şeyler ters gitti: ' + error.message);
       } finally {
         sendBtn.disabled = false;
         sendBtn.classList.remove('loading');
