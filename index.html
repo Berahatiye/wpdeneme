@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>iOS-style Bottom Sheet</title>
+  <title>Send Image + Text on WhatsApp</title>
   <style>
-  .containerwp {
+    .containerwp {
       background: #fffdfa;
       max-width: 400px;
       width: 100%;
@@ -13,6 +13,7 @@
       border-radius: 14px;
       box-shadow: 0 8px 24px rgba(90, 75, 58, 0.12);
       border: 1px solid #e3d9ca;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     h2 {
       font-family: 'Georgia', serif;
@@ -83,7 +84,6 @@
       font-size: 1.15rem;
       font-weight: 700;
       letter-spacing: 0.07em;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #b3884a;
       border: none;
       border-radius: 12px;
@@ -99,24 +99,17 @@
       box-shadow: 0 6px 18px rgba(143, 108, 45, 0.6);
       outline: none;
     }
-   
-    @media (max-width: 480px) {
-      body {
-        padding: 1.5rem 1rem;
-      }
-      .containerwp {
-        padding: 2rem 1.5rem 2.5rem;
-        max-width: 100%;
-      }
-      .gonder {
-        font-size: 1rem;
-        padding: 0.8rem 0;
-      }
+    .loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    #custom-item {
+      display: none;
+      margin-top: 5px;
     }
   </style>
 </head>
 <body>
-
   <div class="containerwp">
     <h2>Contact via WhatsApp</h2>
 
@@ -143,8 +136,7 @@
         <option value="other">Başka bir şey (tıklayın)</option>
       </select>
 
-      <!-- Only shown if 'Other' is selected -->
-      <input type="text" id="custom-item" name="custom-item" placeholder="İstediğiniz ürün kategorisini yazın." style="display: none; margin-top: 5px;" />
+      <input type="text" id="custom-item" name="custom-item" placeholder="İstediğiniz ürün kategorisini yazın." />
 
       <label for="material">Material Preference</label>
       <select id="material" name="material" required>
@@ -179,45 +171,14 @@
   </div>
 
   <script>
-    document.getElementById('whatsapp-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      const name = encodeURIComponent(this.name.value.trim());
-      const age = encodeURIComponent(this.age.value.trim());
-      const location = encodeURIComponent(this.location.value.trim());
-      const phone = encodeURIComponent(this.phone.value.trim());
-      const item = this.item.value === "other" ? encodeURIComponent(this["custom-item"].value.trim()) : encodeURIComponent(this.item.options[this.item.selectedIndex].text);
-      const material = encodeURIComponent(this.material.value.trim());
-      const color = encodeURIComponent(this.color.value.trim());
-      const size = encodeURIComponent(this.size.value.trim());
-      const design = encodeURIComponent(this.design.value.trim());
-      const message = encodeURIComponent(this.message.value.trim());
-
-      const imageInput = document.getElementById("imageUpload");
-      const imageName = imageInput.files.length > 0 ? imageInput.files[0].name : "Yüklenen görsel yok";
-
-      const whatsappNumber = '905059792823';
-
-      const text = 
-        `Ad: ${name}%0A` +
-        `Yaş: ${age}%0A` +
-        `Şehir: ${location}%0A` +
-        `Telefon: ${phone}%0A` +
-        `Ürün Kategorisi: ${item}%0A` +
-        `Malzeme: ${material}%0A` +
-        `Renk: ${color}%0A` +
-        `Ölçü: ${size}%0A` +
-        `Tasarım: ${design}%0A` +
-        `Detaylı Mesaj: ${message}%0A` +
-        `Görsel Dosyası: ${imageName}`;
-
-      const url = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${text}`;
-      window.open(url, '_blank');
-    });
+    const imgbbApiKey = 'e7f4b19f2cce873d00662480776c9543'; // <-- Replace with your actual API key from Imgbb
 
     const itemSelect = document.getElementById("item");
     const customInput = document.getElementById("custom-item");
+    const form = document.getElementById('whatsapp-form');
+    const sendBtn = document.getElementById('gonder');
 
+    // Show/hide custom item input
     itemSelect.addEventListener("change", () => {
       if (itemSelect.value === "other") {
         customInput.style.display = "block";
@@ -227,7 +188,89 @@
         customInput.required = false;
       }
     });
-  </script>
 
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      // Disable button & add loading style
+      sendBtn.disabled = true;
+      sendBtn.classList.add('loading');
+      sendBtn.textContent = 'Uploading...';
+
+      try {
+        let imageUrl = "No image uploaded";
+
+        const imageInput = document.getElementById("imageUpload");
+        if (imageInput.files.length > 0) {
+          const imageFile = imageInput.files[0];
+
+          // Prepare form data for upload
+          const formData = new FormData();
+          formData.append('image', imageFile);
+          formData.append('key', imgbbApiKey);
+
+          // Upload image to Imgbb
+          const response = await fetch('https://api.imgbb.com/1/upload', {
+            method: 'POST',
+            body: formData
+          });
+          const result = await response.json();
+
+          if (result.success) {
+            imageUrl = result.data.url;
+          } else {
+            alert('Image upload failed. Please try again.');
+            sendBtn.disabled = false;
+            sendBtn.classList.remove('loading');
+            sendBtn.textContent = 'Send on WhatsApp';
+            return;
+          }
+        }
+
+        // Prepare form fields
+        const name = encodeURIComponent(form.name.value.trim());
+        const age = encodeURIComponent(form.age.value.trim());
+        const location = encodeURIComponent(form.location.value.trim());
+        const phone = encodeURIComponent(form.phone.value.trim());
+        const item = form.item.value === "other"
+          ? encodeURIComponent(form["custom-item"].value.trim())
+          : encodeURIComponent(form.item.options[form.item.selectedIndex].text);
+        const material = encodeURIComponent(form.material.value.trim());
+        const color = encodeURIComponent(form.color.value.trim());
+        const size = encodeURIComponent(form.size.value.trim());
+        const design = encodeURIComponent(form.design.value.trim());
+        const message = encodeURIComponent(form.message.value.trim());
+        const encodedImageUrl = encodeURIComponent(imageUrl);
+
+        const whatsappNumber = '905059792823'; // Replace with your WhatsApp number (country code + number)
+
+        // Create WhatsApp message text with image URL at the end
+        const text = 
+          `Ad: ${name}%0A` +
+          `Yaş: ${age}%0A` +
+          `Şehir: ${location}%0A` +
+          `Telefon: ${phone}%0A` +
+          `Ürün Kategorisi: ${item}%0A` +
+          `Malzeme: ${material}%0A` +
+          `Renk: ${color}%0A` +
+          `Ölçü: ${size}%0A` +
+          `Tasarım: ${design}%0A` +
+          `Detaylı Mesaj: ${message}%0A` +
+          `Görsel Linki: ${encodedImageUrl}`;
+
+        const url = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${text}`;
+        
+        // Open WhatsApp with prefilled message
+        window.open(url, '_blank');
+
+      } catch (error) {
+        alert('Something went wrong: ' + error.message);
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.classList.remove('loading');
+        sendBtn.textContent = 'Send on WhatsApp';
+      }
+    });
+  </script>
 </body>
 </html>
