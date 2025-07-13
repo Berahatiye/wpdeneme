@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Özel Deri Sipariş Formu</title>
 
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
@@ -111,7 +109,6 @@
       white-space: pre-line;
     }
 
-   
     #customDesignDetailsContainer {
       display: none;
     }
@@ -163,7 +160,6 @@
       </p>
 
       <button type="submit" id="btn-whatsapp" class="btn btn-whatsapp">WhatsApp ile Gönder</button>
-      <button type="button" id="btn-pdf" class="btn btn-pdf">PDF Olarak İndir</button>
     </form>
 
     <div id="preview" class="order-preview"></div>
@@ -190,33 +186,7 @@
         customContainer.style.display = "none";
         document.getElementById("textarea-customDetails").removeAttribute("required");
       }
-      updatePreview();
     });
-
-    ["input-name", "select-item", "input-quantity", "input-delivery", "textarea-message", "textarea-customDetails", "input-color", "input-phone", "input-email"].forEach(id => {
-      const el = document.getElementById(id);
-      if(el) el.addEventListener("input", updatePreview);
-    });
-
-    function updatePreview() {
-      const name = document.getElementById("input-name").value;
-      const email = document.getElementById("input-email").value;
-      const phone = document.getElementById("input-phone").value;
-      const item = document.getElementById("select-item").value;
-      const quantity = document.getElementById("input-quantity").value;
-      const delivery = document.getElementById("input-delivery").value;
-      const message = document.getElementById("textarea-message").value;
-      const color = document.getElementById("input-color").value;
-      const customDetails = document.getElementById("textarea-customDetails").value;
-
-      let productText = item;
-      if (item === "Özel Tasarım" && customDetails.trim() !== "") {
-        productText += ` - ${customDetails}`;
-      }
-
-      document.getElementById("preview").textContent =
-        `Sipariş Özeti:\nAd: ${name}\nE-posta: ${email}\nTelefon: ${phone}\nÜrün: ${productText}\nRenk: ${color}\nAdet: ${quantity}\nTeslimat: ${delivery}\nNot: ${message}`;
-    }
 
     document.getElementById("order-form").addEventListener("submit", function (e) {
       e.preventDefault();
@@ -237,119 +207,41 @@
         productText += ` - ${customDetails}`;
       }
 
-      let whatsapp = "905059792823"; 
-
-      let text = `Sipariş Kodu: ${code}%0AAd: ${name}%0AE-posta: ${email}%0ATelefon: ${phone}%0AÜrün: ${productText}%0ARenk: ${color}%0AAdet: ${quantity}%0ATeslimat: ${delivery}%0ANot: ${message}`;
-      window.open(`https://wa.me/${whatsapp}?text=${text}`, "_blank");
-    });
-
-    document.getElementById("btn-pdf").addEventListener("click", () => {
+      // PDF creation
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({
-        unit: "mm",
-        format: "a4",
-        putOnlyUsedFonts:true,
-        floatPrecision: 16
-      });
-
-      const code = document.getElementById("order-code").textContent;
-      const name = document.getElementById("input-name").value;
-      const email = document.getElementById("input-email").value;
-      const phone = document.getElementById("input-phone").value;
-      const item = document.getElementById("select-item").value;
-      const color = document.getElementById("input-color").value;
-      const quantity = document.getElementById("input-quantity").value;
-      const delivery = document.getElementById("input-delivery").value;
-      const message = document.getElementById("textarea-message").value;
-      const customDetails = document.getElementById("textarea-customDetails").value;
-
-      let productText = item;
-      if (item === "Özel Tasarım" && customDetails.trim() !== "") {
-        productText += ` - ${customDetails}`;
-      }
-
-    
-      const marginLeft = 20;
-      const marginRight = 20;
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const maxLineWidth = pageWidth - marginLeft - marginRight;
-
+      const doc = new jsPDF();
       let y = 20;
-
-     
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(22);
-      doc.text("Özel Deri Sipariş Formu", pageWidth/2, y, { align: "center" });
-      y += 6;
-      doc.setDrawColor(100);
-      doc.setLineWidth(0.8);
-      doc.line(marginLeft, y, pageWidth - marginRight, y);
+      doc.setFontSize(16);
+      doc.text("Özel Deri Sipariş Formu", 105, y, { align: "center" });
       y += 10;
 
-      
-      doc.setFontSize(10);
-      const today = new Date();
-      const todayStr = today.toLocaleDateString("tr-TR");
-      doc.setFont("helvetica", "normal");
-      doc.text(`Oluşturulma Tarihi: ${todayStr}`, marginLeft, y);
-      y += 12;
+      doc.setFontSize(12);
+      const lines = [
+        `Sipariş Kodu: ${code}`,
+        `Ad: ${name}`,
+        `E-posta: ${email}`,
+        `Telefon: ${phone}`,
+        `Ürün: ${productText}`,
+        `Renk: ${color}`,
+        `Adet: ${quantity}`,
+        `Teslimat: ${delivery}`,
+        `Not: ${message}`
+      ];
 
-      
-      const lineGap = 8;
-      const labelFontSize = 12;
-      const contentFontSize = 11;
+      lines.forEach(line => {
+        doc.text(line, 20, y);
+        y += 10;
+      });
 
-      function writeLabel(text) {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(labelFontSize);
-        doc.text(text, marginLeft, y);
-        y += 6;
-      }
+      const fileName = `siparis_${code}.pdf`;
+      doc.save(fileName);
 
-      function writeContent(text) {
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(contentFontSize);
-
-        
-        const lines = doc.splitTextToSize(text, maxLineWidth);
-        doc.text(lines, marginLeft, y);
-        y += lines.length * 6 + lineGap;
-      }
-
-      writeLabel(`Sipariş Kodu:`);
-      writeContent(code);
-
-      writeLabel(`Ad Soyad:`);
-      writeContent(name);
-
-      writeLabel(`E-posta:`);
-      writeContent(email);
-
-      writeLabel(`Telefon:`);
-      writeContent(phone || "-");
-
-      writeLabel(`Ürün:`);
-      writeContent(productText);
-
-      writeLabel(`Renk:`);
-      writeContent(color || "-");
-
-      writeLabel(`Adet:`);
-      writeContent(quantity);
-
-      writeLabel(`Teslimat Tarihi:`);
-      writeContent(delivery);
-
-     
-      writeLabel(`Açıklama:`);
-      writeContent(message || "-");
-
-      
-      doc.setDrawColor(150);
-      doc.setLineWidth(0.4);
-      doc.line(marginLeft, 280, pageWidth - marginRight, 280);
-
-      doc.save(`siparis_${code}.pdf`);
+      // WhatsApp message
+      const whatsapp = "905059792823";
+      const text = encodeURIComponent(
+        `Sipariş Kodu: ${code}\nAd: ${name}\nE-posta: ${email}\nTelefon: ${phone}\nÜrün: ${productText}\nRenk: ${color}\nAdet: ${quantity}\nTeslimat: ${delivery}\nNot: ${message}`
+      );
+      window.open(`https://wa.me/${whatsapp}?text=${text}`, "_blank");
     });
   </script>
 </body>
